@@ -1,5 +1,7 @@
 """A module providing numerical solvers for nonlinear equations."""
 
+import numpy as np
+
 
 class ConvergenceError(Exception):
     """Exception raised if a solver fails to converge."""
@@ -31,8 +33,14 @@ def newton_raphson(f, df, x_0, eps=1.0e-5, max_its=20):
     float
         The approximate root computed using Newton iteration.
     """
-    # Delete these two lines when implementing the method.
-    raise NotImplementedError
+
+    iteration = 0
+    while np.abs(f(x_0)) > eps:
+        x_0 = x_0 - (f(x_0) / df(x_0))
+        iteration += 1
+        if iteration > max_its:
+            raise ConvergenceError
+    return x_0
 
 
 def bisection(f, x_0, x_1, eps=1.0e-5, max_its=20):
@@ -60,8 +68,30 @@ def bisection(f, x_0, x_1, eps=1.0e-5, max_its=20):
     float
         The approximate root computed using bisection.
     """
-    # Delete these two lines when implementing the method.
-    raise NotImplementedError
+
+    iteration = 0
+    x_mid = (x_0 + x_1)/2
+    while np.abs(f(x_mid)) > eps:
+        x_mid = (x_0 + x_1)/2
+        f_xmid = f(x_mid)
+        f_x0 = f(x_0)
+        f_x1 = f(x_1)
+        if (f_x0 > 0) and (f_x1 > 0):
+            raise ValueError("f(x) positive for both endpoints.")
+        elif (f_x0 < 0) and (f_x1 < 0):
+            raise ValueError("f(x) negative for both endpoints.")
+        if f_xmid < 0 and f_x0 < 0:
+            x_0 = x_mid
+        elif f_xmid > 0 and f_x0 > 0:
+            x_0 = x_mid
+        elif f_xmid > 0 and f_x1 > 0:
+            x_1 = x_mid
+        elif f_xmid < 0 and f_x1 < 0:
+            x_1 = x_mid
+        iteration += 1
+        if iteration > max_its:
+            raise ConvergenceError
+    return x_mid
 
 
 def solve(f, df, x_0, x_1, eps=1.0e-5, max_its_n=20, max_its_b=20):
@@ -95,5 +125,9 @@ def solve(f, df, x_0, x_1, eps=1.0e-5, max_its_n=20, max_its_b=20):
     float
         The approximate root.
     """
-    # Delete these two lines when implementing the method.
-    raise NotImplementedError
+
+    try:
+        x = newton_raphson(f, df, x_0, eps, max_its_n)
+    except ConvergenceError:
+        x = bisection(f, x_0, x_1, eps, max_its_b)
+    return x
